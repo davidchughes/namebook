@@ -1,0 +1,8 @@
+**/.gradle*
+**/gradle*
+build/
+*iml
+.idea/
+.idea_modules/
+node_modules/
+
