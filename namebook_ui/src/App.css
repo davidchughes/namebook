@@ -1,5 +1,24 @@
 .App {
   text-align: center;
+  font-family:"lucida grande",tahoma,verdana,arial,sans-serif;
+}
+
+.student-list {
+  text-align: left;
+}
+
+.student-list-group {
+  width: 500px;
+  margin: auto;
+}
+
+.student-name-button{
+  text-align: left;
+  width: 100%;
+}
+
+.edit-button{
+  width:50px;
 }
 
 .App-logo {
@@ -8,7 +27,7 @@
 }
 
 .App-header {
-  background-color: #222;
+  background-color: #3B5998;
   height: 150px;
   padding: 20px;
   color: white;
