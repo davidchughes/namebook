@@ -76,7 +76,8 @@ class EditableStudent extends Component {
 
     this.handleStudentInput = this.handleStudentInput.bind(this);
     this.handleEnterUpdateStudent = this.handleEnterUpdateStudent.bind(this);
-    this.updateStudent = this.updateStudent.bind(this);
+    this.handleUpdateStudent = this.handleUpdateStudent.bind(this);
+    this.handleDeleteStudent = this.handleDeleteStudent.bind(this);
   }
 
   handleStudentInput(event) {
@@ -87,36 +88,44 @@ class EditableStudent extends Component {
 
   handleEnterUpdateStudent(event) {
     event.preventDefault(); //prevent refresh
-    this.updateStudent()
+    this.handleUpdateStudent()
   }
 
-  updateStudent() {
+  handleUpdateStudent() {
     this.props.updateStudent(this.state.student);
   }
-  //once actually added, remove text value
+  
+  handleDeleteStudent(event){
+    console.log('handleDeleteStudent')
+    event.preventDefault(); //prevent refresh
+    this.props.deleteStudent(this.state.student);
+  }
 
   render() {
     return (
       <InputGroup>
-        <InputGroup.Button>
+        {/*<InputGroup.Button>
           <Button><FontAwesome name="check" /></Button>
-        </InputGroup.Button>
+        </InputGroup.Button>*/}
         <form onSubmit={this.handleEnterUpdateStudent}>
-          <FormControl type="text" placeholder="Add new student" onChange={this.handleStudentInput} onBlur={this.updateStudent} value={this.state.student.name} />
+          <FormControl type="text" placeholder="Add new student" onChange={this.handleStudentInput} onBlur={this.handleUpdateStudent} value={this.state.student.name} />
         </form>
+        <InputGroup.Button>
+          <Button onClick={this.handleDeleteStudent}><FontAwesome name="trash" /></Button>
+        </InputGroup.Button>
       </InputGroup>
     );
   }
 }
 
-const StudentList = ({ students, addStudent, updateStudent }) => {
+const StudentList = ({ students, addStudent, updateStudent, deleteStudent }) => {
   return (
     <div className="student-list">
       <ListGroup className="student-list-group">
         {
           students.map((student, key) => (
-              <ListGroupItem key={key} href="#">
-                <EditableStudent student = {student} updateStudent = {updateStudent} />
+              <ListGroupItem key={key}>
+                <EditableStudent student={student} updateStudent={updateStudent} deleteStudent={deleteStudent}/>
               </ListGroupItem>
           ))
         }
@@ -128,9 +137,9 @@ const StudentList = ({ students, addStudent, updateStudent }) => {
   );
 }
 
-const Body = ({ students, addStudent, updateStudent }) =>
+const Body = ({ students, addStudent, updateStudent, deleteStudent }) =>
 <div>
-  <StudentList students={students} addStudent={addStudent} updateStudent={updateStudent}/>
+  <StudentList students={students} addStudent={addStudent} updateStudent={updateStudent} deleteStudent={deleteStudent}/>
 </div>
 
 class App extends Component {
@@ -158,6 +167,7 @@ class App extends Component {
 
     this.addStudent = this.addStudent.bind(this);
     this.updateStudent = this.updateStudent.bind(this);
+    this.deleteStudent = this.deleteStudent.bind(this);
   }
 
   addStudent = (name) => {
@@ -216,6 +226,29 @@ class App extends Component {
     }
   }
 
+  deleteStudent = (student) => {
+    console.log('delete')
+    const response = prompt('Type "yes" to delete');
+    if (response === 'yes') {
+      const localRequest = new Request(student._links.self.href, {
+          mode: 'cors',
+          method: 'DELETE'
+          })
+        fetch(localRequest)
+          .then( () => {
+            console.log('student', student)
+            console.log('students', this.state.students)
+            const newStudents = this.state.students.filter(item => item._links.self.href !== student._links.self.href)
+            this.setState({
+             students: []//shhhhhh force refresh
+            });
+            this.setState({
+             students: newStudents
+            });
+          })
+    }
+  }
+
   dothis(x){
     console.log(x);
   }
@@ -224,7 +257,7 @@ class App extends Component {
     return (
       <div className="App">
         <Header />
-        <Body students={this.state.students} addStudent={this.addStudent} updateStudent={this.updateStudent}/>
+        <Body students={this.state.students} addStudent={this.addStudent} updateStudent={this.updateStudent} deleteStudent={this.deleteStudent}/>
       </div>
     );
   }
