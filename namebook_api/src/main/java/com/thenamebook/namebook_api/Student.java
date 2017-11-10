@@ -1,6 +1,7 @@
 package com.thenamebook.namebook_api;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +10,7 @@ import javax.persistence.Id;
 import java.util.UUID;
 
 @Entity // This tells Hibernate to make a table out of this class
+@CrossOrigin(origins = "*")
 public class Student {
     @Id
     @GeneratedValue(generator="uuid")

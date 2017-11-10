@@ -106,12 +106,15 @@ class App extends Component {
 
   addStudent = (name) => {
     if (name.length > 0) {
-      const header = new Headers();
-      header.append('Content-Type', 'application/json') //is append really the best here? it feels dirty 
+      //const header = new Headers();
+      //header.append('Content-Type', 'application/json') //is append really the best here? it feels dirty 
       const localRequest = new Request("http://localhost:8080/students", {
-        method: "POST",
-        headers: header,
         mode: 'cors',
+        method: "POST",
+        headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
         body: JSON.stringify({
           name: name
         })
