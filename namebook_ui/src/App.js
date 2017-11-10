@@ -77,18 +77,11 @@ class EditableStudent extends Component {
     this.handleStudentInput = this.handleStudentInput.bind(this);
     this.handleEnterUpdateStudent = this.handleEnterUpdateStudent.bind(this);
     this.updateStudent = this.updateStudent.bind(this);
-    //this.clearStudentInput = this.clearStudentInput.bind(this);
   }
 
   handleStudentInput(event) {
     this.setState({
-      student: {name: event.target.value}
-    });
-  }
-
-  clearStudentInput() {
-    this.setState({
-      student: ''
+      student: Object.assign({}, this.state.student, {name: event.target.value})    //Assign overwrites 
     });
   }
 
@@ -99,7 +92,6 @@ class EditableStudent extends Component {
 
   updateStudent() {
     this.props.updateStudent(this.state.student);
-    this.clearStudentInput()
   }
   //once actually added, remove text value
 
@@ -117,14 +109,14 @@ class EditableStudent extends Component {
   }
 }
 
-const StudentList = ({ students, addStudent }) => {
+const StudentList = ({ students, addStudent, updateStudent }) => {
   return (
     <div className="student-list">
       <ListGroup className="student-list-group">
         {
           students.map((student, key) => (
               <ListGroupItem key={key} href="#">
-                <EditableStudent student = {student} />
+                <EditableStudent student = {student} updateStudent = {updateStudent} />
               </ListGroupItem>
           ))
         }
@@ -136,9 +128,9 @@ const StudentList = ({ students, addStudent }) => {
   );
 }
 
-const Body = ({ students, addStudent }) =>
+const Body = ({ students, addStudent, updateStudent }) =>
 <div>
-  <StudentList students={students} addStudent={addStudent} />
+  <StudentList students={students} addStudent={addStudent} updateStudent={updateStudent}/>
 </div>
 
 class App extends Component {
@@ -165,6 +157,7 @@ class App extends Component {
       })
 
     this.addStudent = this.addStudent.bind(this);
+    this.updateStudent = this.updateStudent.bind(this);
   }
 
   addStudent = (name) => {
@@ -195,22 +188,28 @@ class App extends Component {
 
   updateStudent = (student) => {
     if (student.name.length > 0) {
+      console.log(student);
+      const strippedStudent = {
+        // id: student._links.self.href.split('http://localhost:8080/students/')[1],
+        name: student.name,
+        email: student.email
+      };
       //const header = new Headers();
       //header.append('Content-Type', 'application/json') //is append really the best here? it feels dirty 
-      const localRequest = new Request("http://localhost:8080/students", {
+      const localRequest = new Request(student._links.self.href, {
         mode: 'cors',
-        method: "PUT",
+        method: 'PUT',
         headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
-        body: JSON.stringify(student)
+        body: JSON.stringify(strippedStudent)
       })
       fetch(localRequest)
         .then(response => response.json())
         .then(response => {
           this.setState({
-           students: this.state.students.concat([response])
+           students: this.state.students.map(item => item._links.self.href === student._links.self.href ? student : item)   //Swap it if it's the same student
           });
         })
       
@@ -225,7 +224,7 @@ class App extends Component {
     return (
       <div className="App">
         <Header />
-        <Body students={this.state.students} addStudent={this.addStudent} />
+        <Body students={this.state.students} addStudent={this.addStudent} updateStudent={this.updateStudent}/>
       </div>
     );
   }
