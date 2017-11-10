@@ -67,17 +67,64 @@ class AddNewStudent extends Component {
   }
 }
 
+class EditableStudent extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      student: props.student
+    };
+
+    this.handleStudentInput = this.handleStudentInput.bind(this);
+    this.handleEnterUpdateStudent = this.handleEnterUpdateStudent.bind(this);
+    this.updateStudent = this.updateStudent.bind(this);
+    //this.clearStudentInput = this.clearStudentInput.bind(this);
+  }
+
+  handleStudentInput(event) {
+    this.setState({
+      student: {name: event.target.value}
+    });
+  }
+
+  clearStudentInput() {
+    this.setState({
+      student: ''
+    });
+  }
+
+  handleEnterUpdateStudent(event) {
+    event.preventDefault(); //prevent refresh
+    this.updateStudent()
+  }
+
+  updateStudent() {
+    this.props.updateStudent(this.state.student);
+    this.clearStudentInput()
+  }
+  //once actually added, remove text value
+
+  render() {
+    return (
+      <InputGroup>
+        <InputGroup.Button>
+          <Button><FontAwesome name="check" /></Button>
+        </InputGroup.Button>
+        <form onSubmit={this.handleEnterUpdateStudent}>
+          <FormControl type="text" placeholder="Add new student" onChange={this.handleStudentInput} onBlur={this.updateStudent} value={this.state.student.name} />
+        </form>
+      </InputGroup>
+    );
+  }
+}
+
 const StudentList = ({ students, addStudent }) => {
   return (
     <div className="student-list">
       <ListGroup className="student-list-group">
         {
-          students.map((studentName, key) => (
-              <ListGroupItem key={key}>
-                <ButtonGroup justified>
-                  <Button className="edit-button" href="#" ><FontAwesome name="pencil" /></Button>
-                  <Button className="student-name-button" href="#">{studentName}</Button>
-                </ButtonGroup>
+          students.map((student, key) => (
+              <ListGroupItem key={key} href="#">
+                <EditableStudent student = {student} />
               </ListGroupItem>
           ))
         }
@@ -98,8 +145,24 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      students: ['bob', 'Thor', 'Landon']
+      students: []
     };
+
+    const localRequest = new Request("http://localhost:8080/students", {  //TODO pull these requests out
+        mode: 'cors',
+        method: "GET",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+    })
+    fetch(localRequest)
+      .then(response => response.json())
+      .then(response => {
+        this.setState({
+         students: response._embedded.students
+        });
+      })
 
     this.addStudent = this.addStudent.bind(this);
   }
@@ -120,10 +183,42 @@ class App extends Component {
         })
       })
       fetch(localRequest)
-      //this.setState({
-      //  students: this.state.students.concat([name])
-      //});
+        .then(response => response.json())
+        .then(response => {
+          this.setState({
+           students: this.state.students.concat([response])
+          });
+        })
+      
     }
+  }
+
+  updateStudent = (student) => {
+    if (student.name.length > 0) {
+      //const header = new Headers();
+      //header.append('Content-Type', 'application/json') //is append really the best here? it feels dirty 
+      const localRequest = new Request("http://localhost:8080/students", {
+        mode: 'cors',
+        method: "PUT",
+        headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+        body: JSON.stringify(student)
+      })
+      fetch(localRequest)
+        .then(response => response.json())
+        .then(response => {
+          this.setState({
+           students: this.state.students.concat([response])
+          });
+        })
+      
+    }
+  }
+
+  dothis(x){
+    console.log(x);
   }
 
   render() {
